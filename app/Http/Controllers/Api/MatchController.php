@@ -37,4 +37,21 @@ class MatchController extends Controller
 
         return response()->json($match, 200);
     }
+
+    public function status(string $uuid): JsonResponse
+    {
+        $match = ArchivedMatch::where('match_uuid', $uuid)->first();
+
+        if (! $match) {
+            return response()->json(['message' => 'Match not found.'], 404);
+        }
+
+        return response()->json([
+            'match_uuid' => $match->match_uuid,
+            'status'     => $match->status,
+            'attempts'   => $match->attempts,
+            'created_at' => $match->created_at,
+            'updated_at' => $match->updated_at,
+        ]);
+    }
 }
