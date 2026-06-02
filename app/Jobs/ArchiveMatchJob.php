@@ -58,10 +58,7 @@ class ArchiveMatchJob implements ShouldQueue
             ]);
         }
 
-        Log::build([
-            'driver' => 'single',
-            'path'   => storage_path('logs/match-archive-errors.log'),
-        ])->error('Match archive job failed', [
+        Log::channel('match-failures')->error('Match archive job failed', [
             'archived_match_id' => $this->archivedMatchId,
             'message'           => $e->getMessage(),
         ]);

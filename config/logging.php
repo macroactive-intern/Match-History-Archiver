@@ -127,6 +127,12 @@ return [
             'path' => storage_path('logs/laravel.log'),
         ],
 
+        'match-failures' => [
+            'driver' => 'single',
+            'path'   => storage_path('logs/match-archive-errors.log'),
+            'level'  => 'error',
+        ],
+
     ],
 
 ];
