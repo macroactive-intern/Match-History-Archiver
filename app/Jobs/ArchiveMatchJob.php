@@ -1,0 +1,48 @@
+<?php
+
+namespace App\Jobs;
+
+use App\Models\ArchivedMatch;
+use Illuminate\Contracts\Queue\ShouldQueue;
+use Illuminate\Foundation\Queue\Queueable;
+use RuntimeException;
+
+class ArchiveMatchJob implements ShouldQueue
+{
+    use Queueable;
+
+    public int $tries = 3;
+
+    public array $backoff = [10, 60, 300];
+
+    public function __construct(public int $archivedMatchId)
+    {
+    }
+
+    public function handle(): void
+    {
+        $match = ArchivedMatch::findOrFail($this->archivedMatchId);
+
+        if ($match->status === 'archived') {
+            return;
+        }
+
+        $match->update([
+            'status'   => 'processing',
+            'attempts' => $match->attempts + 1,
+        ]);
+
+        $payload = $match->payload;
+
+        if (($payload['force_fail'] ?? false) === true) {
+            throw new RuntimeException('Forced archive failure for testing.');
+        }
+
+        $payload['archived_at'] = now()->toISOString();
+
+        $match->update([
+            'payload' => $payload,
+            'status'  => 'archived',
+        ]);
+    }
+}

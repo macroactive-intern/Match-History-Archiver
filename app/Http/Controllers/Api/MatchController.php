@@ -30,7 +30,7 @@ class MatchController extends Controller
         );
 
         if ($match->wasRecentlyCreated) {
-            ArchiveMatchJob::dispatch($match);
+            ArchiveMatchJob::dispatch($match->id);
 
             return response()->json($match, 202);
         }
