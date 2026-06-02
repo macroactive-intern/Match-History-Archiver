@@ -5,7 +5,9 @@ namespace App\Jobs;
 use App\Models\ArchivedMatch;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
+use Illuminate\Support\Facades\Log;
 use RuntimeException;
+use Throwable;
 
 class ArchiveMatchJob implements ShouldQueue
 {
@@ -43,6 +45,25 @@ class ArchiveMatchJob implements ShouldQueue
         $match->update([
             'payload' => $payload,
             'status'  => 'archived',
+        ]);
+    }
+
+    public function failed(Throwable $e): void
+    {
+        $match = ArchivedMatch::find($this->archivedMatchId);
+
+        if ($match) {
+            $match->update([
+                'status' => 'failed',
+            ]);
+        }
+
+        Log::build([
+            'driver' => 'single',
+            'path'   => storage_path('logs/match-archive-errors.log'),
+        ])->error('Match archive job failed', [
+            'archived_match_id' => $this->archivedMatchId,
+            'message'           => $e->getMessage(),
         ]);
     }
 }
